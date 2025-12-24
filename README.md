@@ -1,13 +1,6 @@
-# Custom Samplers for llama.cpp
+# custom_samplers
 
-Direct DLL access to llama.cpp with pluggable token samplers. No Python bindings needed.
-
-## Files
-
-- `llama_cpp_direct.py` - Direct ctypes interface to llama.dll
-- `custom_samplers.py` - 30+ custom sampling strategies
-- `run_sampler.py` - CLI runner
-- `SAMPLERS.md` - Full sampler reference
+Custom token samplers for llama.cpp via direct DLL access (ctypes, no bindings).
 
 ## Setup
 
@@ -15,45 +8,39 @@ Direct DLL access to llama.cpp with pluggable token samplers. No Python bindings
 pip install numpy
 ```
 
-Set environment variables:
+You need:
+- `llama.dll` (or `.so`/`.dylib`) from a llama.cpp build
+- A `.gguf` model
+
+Set paths via environment variables:
 ```bash
 export LLAMA_DLL_PATH=/path/to/llama.dll
 export LLAMA_MODEL_PATH=/path/to/model.gguf
 ```
 
-## Usage
+## Run
 
 ```bash
-# List available samplers
-python run_sampler.py list
-
-# Run with a sampler
-python run_sampler.py --sampler=entropix --prompt="Once upon a time"
-python run_sampler.py --sampler=chaos --tokens=50
+python run_sampler.py list                    # see all samplers
+python run_sampler.py --sampler=entropix      # entropy-aware adaptive
+python run_sampler.py --sampler=chaos         # pick worst token
 python run_sampler.py --sampler=drunk --level=7
+python run_sampler.py --sampler=second_best --prompt="The answer is" --tokens=50
 ```
 
-## Sampler Categories
-
-**Core**: whitelist, nth_best, random_top_k, contrastive, entropix, entropy_aware
-
-**Creative**: chaos, stutter, drunk, echo, madness, mood_swing, wave, lucky, confidence, bracket
-
-**Gaslighting** (post-hoc override): deferred_nth, deferred_wl, mismatch, contrarian, delayed_chaos, breadth
-
-**Advanced**: ngram_block, unique, typo, lookahead, reward, cfg, copy, competing
-
-## Programmatic Use
+## Use in code
 
 ```python
 from llama_cpp_direct import LlamaDirect
 from custom_samplers import create_sampler
 
-llm = LlamaDirect(dll_path="llama.dll", model_path="model.gguf")
+llm = LlamaDirect(dll_path="...", model_path="...")
 sampler = create_sampler("entropix")
 
 for token_id, text in llm.generate_streaming("Hello", max_tokens=100, custom_sampler=sampler):
     print(text, end='', flush=True)
 ```
 
-See `SAMPLERS.md` for full documentation.
+## Samplers
+
+See [SAMPLERS.md](SAMPLERS.md) for the full list.
